@@ -1,0 +1,62 @@
+import matplotlib.pyplot as plt
+import csv
+import pandas as pd
+import numpy as np
+#from sklearn.tree import DecisionTreeClassifier
+from collections import defaultdict
+from sklearn.cross_validation import cross_val_score
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+
+clf_SVC = SVC(random_state = 912, kernel='rbf')
+
+clf_RF = RandomForestClassifier(random_state=14)
+
+clf_LR = LogisticRegression(random_state = 42)
+
+
+
+
+
+df = pd.read_csv('HVLastWinandWINSTREWAK.csv')
+
+
+
+
+for i in range(len(df)):
+    print(i)
+    df.loc[i,"HomeWin"] = bool(df.loc[i,"HomeWin"])
+    df.loc[i,"HomeLastWin"] = bool(df.loc[i,"HomeLastWin"])
+    df.loc[i,"VisitorLastWin"] = bool(df.loc[i,"VisitorLastWin"])
+    df.loc[i,"HomeWinStreak"] = int(df.loc[i,"HomeWinStreak"])
+    df.loc[i,"VisitorWinStreak"]  = int(df.loc[i,"VisitorWinStreak"] )
+    
+
+
+y_true = df["HomeWin"].values
+
+X_winstreak = df[["HomeLastWin","VisitorLastWin","HomeWinStreak","VisitorWinStreak"]].values
+
+
+
+scores_RF = cross_val_score(clf_RF, X_winstreak, y_true, scoring=None)
+
+scores_SVC = cross_val_score(clf_SVC, X_winstreak, y_true, scoring=None)
+
+scores_LR = cross_val_score(clf_LR, X_winstreak, y_true, scoring=None)
+
+#clf.fit(X_winstreak, y_true, sample_weight=None) 
+#print(clf.predict([True,True], check_input=True))
+
+
+print("Random Forest:",np.mean(scores_RF)*100)
+
+print("SVC:",np.mean(scores_SVC)*100)
+
+print("Logistic Regression:",np.mean(scores_LR)*100)
+
+"""
+#https://github.com/PacktPublishing/Learning-Data-Mining-with-Python/blob/master/Chapter%203/Basketball%20Results.ipynb
+    
+"""

@@ -1,0 +1,127 @@
+import csv
+import pandas as pd
+import numpy as np
+from sklearn.tree import DecisionTreeClassifier
+from collections import defaultdict
+from sklearn.cross_validation import cross_val_score
+from sklearn.ensemble import RandomForestClassifier
+
+
+
+matches = []
+
+csv_f = csv.reader(open('matchResults.csv'))
+
+won_last= defaultdict(int)
+
+win_streak = defaultdict(int)
+
+clf = RandomForestClassifier(random_state=14)
+
+#percorre todos as linhas do arquivo e aquelas que possuirem a linha 2 igual a inferno adiciona a uma lista
+for row in csv_f:
+            matches.append(row)
+
+
+#Adiciona a feature booleana dizendo e o time que escolheu o mapa foi o vencedor
+#realiza soma de qual time ganhou e adiciona ao fim de cada liste da linha o valor 1 ou 2, referente ao campeao do time 1 ou 2         
+x = 1
+
+y_true = []
+
+while (x < len(matches)):
+
+    if(int(matches[x][4]) < int(matches[x][10])):
+        matches[x].append(False)
+        y_true.append(False)
+    else:
+        matches[x].append(True)
+        y_true.append(True)
+
+    x = x +1
+
+
+
+
+############################################################################################################################
+#passa a lista matches para um DataFrame
+
+results = pd.DataFrame(matches)
+
+
+#deleta counas geradas a mais
+del results[29]
+del results[28]
+del results[27]
+del results[26]
+del results[25]
+del results[24]
+del results[23]
+del results[22]
+del results[21]
+del results[20]
+del results[19]
+del results[18]
+del results[17]
+del results[16]
+
+
+results["HomeLastWin"] = False
+results["VisitorLastWin"] = False
+
+results1 = results.iloc[1:]
+
+results1.columns = ["Date","Map","Team 1 ID","Team 1 Start Side","Team 1 Score","Team 1 Half 1 Score","Team 1 Half 2 Score","Team 1 Overtime Score","Team 2 ID","Team 2 Start Side","Team 2 Score","Team 2 Half 1 Score","Team 2 Half 2 Score","Team 2 Overtime Score","Match ID","HomeWin","HomeLastWin","VisitorLastWin"]
+
+results1.HomeWin = y_true
+##############################################################################################################################
+#pegando os resultados anteriores do time da casa e do time visitante
+#criando o atributo ultima partida o tima da casa ou visitante foi o vencedor 
+
+
+for index, row in results1.iterrows():
+    home_team = row["Team 1 ID"]
+    visitor_team = row["Team 2 ID"]
+    row["HomeLastWin"] = won_last[home_team]
+    row["VisitorLastWin"] = won_last[visitor_team]
+    results1.ix[index] = row
+    print("wonlast ",index)
+    won_last[home_team] = row["HomeWin"]
+    won_last[visitor_team] = not row["HomeWin"]
+    if(results1["VisitorLastWin"][7653] == 'Inferno'):
+        results1["VisitorLastWin"][7653] = False   
+    
+
+
+
+
+##############################################################################
+#aplicação dos atributos winStreak
+
+
+results1["HomeWinStreak"] = 0
+results1["VisitorWinStreak"] = 0
+
+results1.columns = ["Date","Map","Team 1 ID","Team 1 Start Side","Team 1 Score","Team 1 Half 1 Score","Team 1 Half 2 Score","Team 1 Overtime Score","Team 2 ID","Team 2 Start Side","Team 2 Score","Team 2 Half 1 Score","Team 2 Half 2 Score","Team 2 Overtime Score","Match ID","HomeWin","HomeLastWin","VisitorLastWin","HomeWinStreak","VisitorWinStreak"]
+
+
+
+for index, row in results1.iterrows():
+    home_team = row["Team 1 ID"]
+    visitor_team = row["Team 2 ID"]
+    row["HomeWinStreak"] = win_streak[home_team]
+    row["VisitorWinStreak"] = win_streak[visitor_team]
+    results1.ix[index] = row
+    print(index)
+    if row["HomeWin"]:
+        win_streak[home_team] += 1
+        win_streak[visitor_team] = 0
+    else:
+        win_streak[home_team] = 0
+        win_streak[visitor_team] += 1
+
+
+
+
+results1.to_csv("HVLastWinandWINSTREWAK.csv")  
+
