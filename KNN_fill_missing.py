@@ -134,3 +134,8 @@ df = knn_fill_missing(df)
 print('Quantidade de nulos depois')
 print(df.isnull().sum())
 print("Finaliza a contagem do tempo %s seconds ---" % (time.time() - start_time))
+
+
+idx, idy = np.where(pd.isnull(df))
+#salva no result uma chave da qual [numero_linha, coluna]
+result = np.column_stack([df.index[idx], df.columns[idy]])
