@@ -74,22 +74,23 @@ for col in df.columns:
 print('Quantidade de nulos antes')
 print(df.isna().sum().sum())
 ################# Inicio do KNN #######################################
-
+start_time = time.time()
 #essa função recebe um dataframe com valores booleanos e realiza um KNN para prever o possível valor
 def knn_fill_missing(df):   
     columns_names = df.columns     
     #realiza um for para observar cada linha
-    for row in df.iterrows():
-        print(row[0])
+    for row in df.itertuples():
+
         #array que possui o nome da coluna com valor NaN em cada observação
         col_nan_names = []
-        print(row)
+
         qt_nan = 0
         #faz um for para olhar cada coluna
-        for col_ind in range(1,len(columns_names)):
-            print('------------')
-            x = row[1]
+        for col_ind in range(0,len(columns_names)):
+
+            x = row[1:]
             x = x[col_ind]
+            
             #verifica se o valor daquela linha e coluna específca é um NaN
             if math.isnan(x):
                 #adiciona a quantidade de nan presentes em uma observação
@@ -110,39 +111,26 @@ def knn_fill_missing(df):
         
     
         for r in range(0,len(col_nan_names)):
-                print('VALOR DO R',r)
                 df_knn = df.dropna()
-                print(col_nan_names[:len(col_nan_names)-r])
                 X = df_knn.drop(columns=col_nan_names[:len(col_nan_names)-r])
                 
-                print('QUANTIDADE DE COLUNAS EM X: ',len(X.columns))
                 y = df_knn[col_nan_names[r]]
                 
                 KNN = KNeighborsClassifier(algorithm = 'kd_tree',n_neighbors=3, n_jobs = -1)
-
                 KNN.fit(X, y)
                 
                 #salva a obsevação numa variável
                 inp =df.loc[row[0]].values
-                print('QUANTIDADE DE VALORES QUE ENTRARÃO NO PREDICT antes da exlusão de nan: ',inp)
                 inp = inp[~np.isnan(inp)]
-                print('QUANTIDADE DE VALORES QUE ENTRARÃO NO PREDICT: ',inp)
-                print('Printa o que possui na variáveis antes de ser modificada:',df[col_nan_names[r]][row[0]])
                 df[col_nan_names[r]][row[0]] = KNN.predict(inp.reshape(1, -1))
-                #retira o valor nulo da mesma
-                #inp = inp[~np.isnan(inp)]
-                #inp = inp.reshape(1, -1)
-                #inp = inp[0]
-                #print(inp)
-                #substitui a linha e coluna que possui NaN pelo valor específico
-                #df[col_nan_names[r]][row[0]] = KNN.predict([inp])
+
         
     return df
 
 #a ultima coluna nao está sendo alterada pelo KNN portanto deverá ser alterada
 
-df['col_8'] = df['col_8']
+df[df.columns[-1]] = df[df.columns[-1]]
 df = knn_fill_missing(df)
 print('Quantidade de nulos depois')
-print(df.isnull().sum().sum())
-print(df)
+print(df.isnull().sum())
+print("Finaliza a contagem do tempo %s seconds ---" % (time.time() - start_time))
